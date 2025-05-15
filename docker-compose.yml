@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik:v2.11
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik Dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - web
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: dev-mem
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`keycloak.localhost`)"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+    networks:
+      - web
+
+  gitea:
+    image: gitea/gitea:1.21.11
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      GITEA__server__ROOT_URL: http://gitea.localhost/
+    volumes:
+      - ./gitea:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitea.rule=Host(`gitea.localhost`)"
+      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+    networks:
+      - web
+
+networks:
+  web:
+    external: false
