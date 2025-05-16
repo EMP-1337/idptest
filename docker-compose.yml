@@ -22,11 +22,11 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_DB: dev-mem
-   labels:
-  - "traefik.enable=true"
-  - "traefik.http.routers.keycloak.rule=Host(`keycloak.141.72.190.32.nip.io`)"
-  - "traefik.http.routers.keycloak.entrypoints=web"
-  - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`keycloak.141.72.190.32.nip.io`)"
+      - "traefik.http.routers.keycloak.entrypoints=web"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
     networks:
       - web
 
@@ -39,10 +39,10 @@ services:
     volumes:
       - ./gitea:/data
     labels:
-  - "traefik.enable=true"
-  - "traefik.http.routers.gitea.rule=Host(`gitea.141.72.190.32.nip.io`)"
-  - "traefik.http.routers.gitea.entrypoints=web"
-  - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitea.rule=Host(`gitea.141.72.190.32.nip.io`)"
+      - "traefik.http.routers.gitea.entrypoints=web"
+      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
     networks:
       - web
 
