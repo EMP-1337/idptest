@@ -1,18 +1,25 @@
-version: "3.8"
-
 services:
   traefik:
     image: traefik:v2.11
     command:
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
       - "--api.insecure=true"
       - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
+      - "--certificatesResolvers.devresolver.acme.tlschallenge=true"
+      - "--certificatesResolvers.devresolver.acme.email=test@example.com"
+      - "--certificatesResolvers.devresolver.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=DEBUG"
+      - "--serversTransport.insecureSkipVerify=true"  # wichtig für self-signed certs
+      - "--providers.file.filename=/etc/traefik/dynamic.yaml"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik/certs:/certs"
+      - "./traefik/dynamic.yaml:/etc/traefik/dynamic.yaml"
     networks:
       - web
 
@@ -25,25 +32,9 @@ services:
       KC_DB: dev-mem
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.keycloak.rule=Host(`keycloak.141.72.190.32.nip.io`)"
-      - "traefik.http.routers.keycloak.entrypoints=web"
-      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
-    networks:
-      - web
-
-  gitea:
-    image: gitea/gitea:1.21.11
-    environment:
-      USER_UID: 1000
-      USER_GID: 1000
-      GITEA__server__ROOT_URL: http://gitea.localhost/
-    volumes:
-      - ./gitea:/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.gitea.rule=Host(`gitea.141.72.190.32.nip.io`)"
-      - "traefik.http.routers.gitea.entrypoints=web"
-      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+      - "traefik.http.routers.keycloak.rule=Host(`keycloak.localhost`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.tls=true"
     networks:
       - web
 
